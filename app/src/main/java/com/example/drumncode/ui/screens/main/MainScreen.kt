@@ -92,14 +92,14 @@ fun MainScreenLazyHeader(
 ) {
 
     val expanded = remember { mutableStateOf(true) }
-    val e_state = remember { mutableStateOf(game.e) }
-    e_state.value = sortedList(list = e_state.value)
+    val eState = remember { mutableStateOf(game.e) }
+    eState.value = sortedList(list = eState.value)
 
     Column(modifier = Modifier.padding(5.dp)) {
         TextHeader(header = game.d, expanded = expanded)
         if (expanded.value) {
             MainScreenLazyElements(
-                matches = e_state,
+                matches = eState,
                 mainScreenViewModel = mainScreenViewModel
             )
         }
@@ -144,7 +144,7 @@ fun MainScreenLazyElements(
     matches: MutableState<List<EDomainModel>>,
     mainScreenViewModel: MainScreenViewModel
 ) {
-    val matches_sort = sortedList(list = matches.value)
+    val matchesSort = sortedList(list = matches.value)
 
     LazyRow(
         modifier = Modifier
@@ -152,14 +152,11 @@ fun MainScreenLazyElements(
             .fillMaxSize(),
         userScrollEnabled = true
     ) {
-        matches_sort.forEach { info ->
+        matchesSort.forEach { info ->
             item {
-                val starActiv = remember { mutableStateOf(info.favourite) }
-
                 MainScreenLazyInfo(
                     info = info,
-                    starActiv = starActiv,
-                    addToFafourite = {
+                    addToFavourite = {
                         mainScreenViewModel.addToFavourite(info.i)
                     }
                 )
@@ -170,8 +167,9 @@ fun MainScreenLazyElements(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MainScreenLazyInfo(info: EDomainModel, starActiv: MutableState<Boolean>, addToFafourite: () -> Unit) {
+fun MainScreenLazyInfo(info: EDomainModel, addToFavourite: () -> Unit) {
 
+    val starActiv = remember { mutableStateOf(info.favourite) }
     val text = info.sh.split("-")
 
     Surface(modifier = Modifier.padding(all = 5.dp), color = MaterialTheme.colorScheme.background) {
@@ -184,7 +182,7 @@ fun MainScreenLazyInfo(info: EDomainModel, starActiv: MutableState<Boolean>, add
             TextTimeInfo(time = info.tt)
             StarFavouriteInfo(
                 expanded = starActiv,
-                addToFafourite = { addToFafourite() }
+                addToFavourite = { addToFavourite() }
             )
             TextPlayers(player = text[0])
             TextPlayers(player = text[1])
@@ -197,11 +195,6 @@ fun MainScreenLazyInfo(info: EDomainModel, starActiv: MutableState<Boolean>, add
 @Composable
 fun TextTimeInfo(time: Long) {
 
-    val result = getDayAndTimeDifference(
-        startTimestamp = convertDateToLong(LocalDateTime.now()),
-        endTimestamp = time
-    )
-
     Surface(
         modifier = Modifier,
         color = MaterialTheme.colorScheme.background,
@@ -209,7 +202,10 @@ fun TextTimeInfo(time: Long) {
         border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.secondary)
     ) {
         Text(
-            text = result,
+            text = getDayAndTimeDifference(
+                startTimestamp = convertDateToLong(LocalDateTime.now()),
+                endTimestamp = time
+            ),
             modifier = Modifier
                 .padding(5.dp),
             color = MaterialTheme.colorScheme.secondary,
@@ -222,7 +218,7 @@ fun TextTimeInfo(time: Long) {
 @Composable
 fun StarFavouriteInfo(
     expanded: MutableState<Boolean>,
-    addToFafourite: () -> Unit
+    addToFavourite: () -> Unit
 ) {
     Image(
         imageVector = if (expanded.value) ImageVector.vectorResource(id = R.drawable.star_favourite) else ImageVector.vectorResource(
@@ -232,7 +228,7 @@ fun StarFavouriteInfo(
         modifier = Modifier
             .clickable {
                 expanded.value = !expanded.value
-                addToFafourite()
+                addToFavourite()
             }
             .size(25.dp)
     )
@@ -254,7 +250,6 @@ fun getDayAndTimeDifference(startTimestamp: Long, endTimestamp: Long): String {
     val endDateTime = LocalDateTime.ofEpochSecond(endTimestamp, 0, ZoneOffset.UTC)
 
     val duration = Duration.between(startDateTime, endDateTime)
-//    val months = duration.toDays().days
     val days = duration.toDays().days
     val hours = duration.toHours() % 24
     val minutes = duration.toMinutes() % 60
